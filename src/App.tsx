@@ -1,35 +1,52 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState, useEffect } from "react";
+import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(
+    null,
+  );
+  //const [weather, setWeather] = useState(null);
+
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      console.error("Geolocation is not supported by this browser.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setCoords({ lat: latitude, lon: longitude });
+      },
+      (error) => {
+        console.error("Error getting location:", error.message);
+        // fallback to manual city input here
+      },
+    );
+  }, []);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="min-h-screen bg-gradient-to-br from-sky-200 to-blue-300 text-zinc-800 flex flex-col items-center justify-center px-4">
+      <div className="max-w-md w-full">
+        <header className="mb-6 text-center">
+          <h1 className="text-3xl font-bold">MyWeather</h1>
+          <p className="text-sm text-zinc-700">Current weather in your area</p>
+        </header>
+
+        <main className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl p-6 space-y-4">
+          {coords ? (
+            <p className="text-center text-zinc-500">{coords.lat}</p>
+          ) : (
+            <p className="text-center text-zinc-500">Loading...</p>
+          )}
+        </main>
+
+        <footer className="mt-6 text-xs text-center text-zinc-500">
+          Powered by OpenWeatherMap
+        </footer>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+export default App;
