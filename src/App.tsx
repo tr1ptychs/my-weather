@@ -5,18 +5,32 @@ function App() {
   const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(
     null,
   );
-  //const [weather, setWeather] = useState(null);
+  const [temp, setTemp] = useState(0);
+  const [feelsLike, setFeelsLike] = useState(0);
 
   useEffect(() => {
     if (!navigator.geolocation) {
-      console.error("Geolocation is not supported by this browser.");
       return;
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
         const { latitude, longitude } = position.coords;
         setCoords({ lat: latitude, lon: longitude });
+        fetch(
+          `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${import.meta.env.VITE_WEATHER_API}&units=imperial`,
+        )
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Weather fetch failed.");
+            }
+            return response.json();
+          })
+          .then((data) => {
+            console.log(data);
+            setTemp(data.main.temp);
+            setFeelsLike(data.main.feels_like);
+          });
       },
       (error) => {
         console.error("Error getting location:", error.message);
@@ -35,7 +49,12 @@ function App() {
 
         <main className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl p-6 space-y-4">
           {coords ? (
-            <p className="text-center text-zinc-500">{coords.lat}</p>
+            <>
+              <p className="text-center text-zinc-500">Current Temp: {temp}</p>
+              <p className="text-center text-zinc-500">
+                Feels Like: {feelsLike}
+              </p>
+            </>
           ) : (
             <p className="text-center text-zinc-500">Loading...</p>
           )}
